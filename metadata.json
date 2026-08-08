@@ -1,0 +1,6 @@
+{
+  "name": "国家电网法律文书智能生成系统",
+  "description": "面向电网工程合同、采购合同、法务函件、制度文件、合规报告五大场景的智能撰写、合规校验、风险识别、智能修订与版本归档平台",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
