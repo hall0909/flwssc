@@ -16,7 +16,9 @@ import {
   ExternalLink,
   Sparkles,
   TrendingUp,
-  Filter
+  Filter,
+  Video,
+  Play
 } from 'lucide-react';
 import { LegalDocument, DocumentCategory, DashboardMetrics } from '../types';
 
@@ -28,6 +30,9 @@ interface DashboardViewProps {
   onNavigateToReview: () => void;
   onNavigateToBatchReview: () => void;
   onOpenGlobalSearch: () => void;
+  onOpenSystemDemoVideo?: () => void;
+  onStartLiveDemo?: () => void;
+  demoTime?: number;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -37,9 +42,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenDocument,
   onNavigateToReview,
   onNavigateToBatchReview,
-  onOpenGlobalSearch
+  onOpenGlobalSearch,
+  onOpenSystemDemoVideo,
+  onStartLiveDemo,
+  demoTime
 }) => {
   const [filterCategory, setFilterCategory] = useState<string>('all');
+
+  // React to demo time updates
+  React.useEffect(() => {
+    if (demoTime !== undefined) {
+      if (demoTime >= 4 && demoTime < 18) {
+        setFilterCategory('power_engineering');
+      } else if (demoTime >= 18) {
+        setFilterCategory('all');
+      }
+    }
+  }, [demoTime]);
 
   const filteredDocs = documents.filter(doc => {
     if (filterCategory === 'all') return true;
@@ -67,6 +86,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         <div className="flex items-center space-x-3 shrink-0">
+          {onStartLiveDemo && (
+            <button 
+              onClick={onStartLiveDemo}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition flex items-center space-x-1.5 active:scale-95 border border-purple-400/30"
+              title="点击启动3分钟AI生成流程与辅助能力语音演示"
+            >
+              <Play className="w-3.5 h-3.5 text-amber-300 fill-amber-300 animate-pulse" />
+              <span>操作演示 (3分钟AI流程)</span>
+            </button>
+          )}
           <button 
             onClick={() => onNavigateToDrafting()}
             className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition flex items-center space-x-1.5"

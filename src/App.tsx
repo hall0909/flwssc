@@ -18,6 +18,8 @@ import { WorkflowLogicVisualizer } from './components/WorkflowLogicVisualizer';
 
 import { AIDisclaimerModal } from './components/modals/AIDisclaimerModal';
 import { GlobalSearchModal } from './components/modals/GlobalSearchModal';
+import { SystemDemoVideoModal } from './components/modals/SystemDemoVideoModal';
+import { LiveOperationDemo } from './components/LiveOperationDemo';
 
 import { 
   LegalDocument, 
@@ -37,6 +39,8 @@ import {
   MOCK_DASHBOARD_METRICS 
 } from './data/mockData';
 
+import { generateDocumentContent } from './utils/documentTemplates';
+
 export default function App() {
   // Navigation & Role State
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
@@ -51,9 +55,12 @@ export default function App() {
   const [riskRules, setRiskRules] = useState<RiskRule[]>(INITIAL_RISK_RULES);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
 
-  // Modals
+  // Modals & Demo
   const [showAIDisclaimer, setShowAIDisclaimer] = useState<boolean>(false);
   const [showGlobalSearch, setShowGlobalSearch] = useState<boolean>(false);
+  const [showSystemDemoVideo, setShowSystemDemoVideo] = useState<boolean>(false);
+  const [isLiveDemoRunning, setIsLiveDemoRunning] = useState<boolean>(false);
+  const [demoTime, setDemoTime] = useState<number>(0);
 
   const currentDocument = documents.find(d => d.id === currentDocId) || documents[0] || null;
 
@@ -80,9 +87,37 @@ export default function App() {
 
   const handleCreateNewDocument = (category: DocumentCategory, subType: string, mode: 'form' | 'blank' | 'ai') => {
     const newId = `DOC-${Date.now()}`;
+    const initialFormFields = {
+      partyA: selectedUnit,
+      partyB: category === 'legal_letter' ? '安徽建工第三建设集团有限公司' : category === 'procurement' ? '威胜集团股份有限公司' : '华东电力建设工程总公司',
+      creditCodeA: '91320000134769018A',
+      creditCodeB: '91310000100028912C',
+      projectTarget: category === 'power_engineering' ? '110kV输变电新建与技改工程' : category === 'procurement' ? '智能电能表及变压器设备集中采购' : category === 'legal_letter' ? '关于工期进度滞后与违约整改催告' : category === 'internal_policy' ? '法律文书合规管理办法' : '年度法务风控与合规自查报告',
+      amount: category === 'power_engineering' ? 3200 : category === 'procurement' ? 1200 : 500,
+      taxRate: category === 'procurement' ? 13 : 9,
+      startDate: '2026-09-01',
+      endDate: '2027-08-31',
+      location: '发包人指定现场',
+      qualityPeriod: '24个月',
+      paymentNodes: '预付款20%，进度款75%，竣工验收90%，质保金留扣3%',
+      breachTerms: '按违约每日0.05%扣减违约金',
+      disputeResolution: '向发包人所在地人民法院提起诉讼',
+      safetyResponsibility: '承包人全面承担施工现场安全生产主体责任，遵守电网反违章规定'
+    };
+
+    const categoryNames: Record<string, string> = {
+      power_engineering: '电力工程合同',
+      procurement: '采购合同',
+      legal_letter: '法务函件',
+      internal_policy: '制度文件',
+      compliance_report: '合规报告'
+    };
+
+    const generatedContent = generateDocumentContent(category, subType, initialFormFields, selectedUnit);
+
     const newDoc: LegalDocument = {
       id: newId,
-      title: `${selectedUnit}${category === 'power_engineering' ? '110kV工程' : '物资采购'}标准合同草稿`,
+      title: `${selectedUnit}${initialFormFields.projectTarget} (${categoryNames[category] || '文书'})`,
       category,
       subType,
       status: 'draft',
@@ -90,36 +125,8 @@ export default function App() {
       createdBy: currentRole === 'legal_reviewer' ? '李敏' : '张立华',
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
       updatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      formFields: {
-        partyA: selectedUnit,
-        partyB: '华东电力建设工程总公司',
-        creditCodeA: '91320000134769018A',
-        creditCodeB: '91310000100028912C',
-        projectTarget: '电网输变电工程及配套设施智能建设项目',
-        amount: 3200,
-        taxRate: 9,
-        startDate: '2026-09-01',
-        endDate: '2027-08-31',
-        location: '项目建设现场',
-        qualityPeriod: '24个月',
-        paymentNodes: '预付款20%，进度款75%，竣工验收90%，质保金留扣3%',
-        breachTerms: '按违约每日0.05%扣减违约金',
-        disputeResolution: '向发包人所在地人民法院提起诉讼',
-        safetyResponsibility: '承包人全面承担施工现场安全生产主体责任，违反反违章扣罚单次5万元'
-      },
-      content: `第一条 工程概况
-1.1 本项目名称为：${selectedUnit}输变电新建项目。
-1.2 乙方（承包人）：华东电力建设工程总公司。
-
-第二条 工期与工程质量
-2.1 计划工期自 2026年09月01日起至 2027年08月31日止。
-2.2 质量保证期为竣工验收合格之日起 24 个月。
-
-第三条 价款支付与质保金
-3.1 合同金额为人民币 3200 万元。预留 3% 作为质量保证金。
-
-第四条 电网安全与反违章特别约定
-4.1 乙方必须严格执行电网《安全生产反违章管理办法》。如发生严重违章，单次扣罚违约金5万元。`,
+      formFields: initialFormFields,
+      content: generatedContent,
       versions: [
         {
           id: `VER-${Date.now()}`,
@@ -210,6 +217,8 @@ export default function App() {
         onToggleAi={() => setAiEnabled(!aiEnabled)}
         onOpenGlobalSearch={() => setShowGlobalSearch(true)}
         onOpenAIDisclaimer={() => setShowAIDisclaimer(true)}
+        onOpenSystemDemoVideo={() => setShowSystemDemoVideo(true)}
+        onStartLiveDemo={() => setIsLiveDemoRunning(true)}
       />
 
       {/* Main Body Layout */}
@@ -238,6 +247,9 @@ export default function App() {
               onNavigateToReview={() => setActiveTab('review')}
               onNavigateToBatchReview={() => setActiveTab('review')}
               onOpenGlobalSearch={() => setShowGlobalSearch(true)}
+              onOpenSystemDemoVideo={() => setShowSystemDemoVideo(true)}
+              onStartLiveDemo={() => setIsLiveDemoRunning(true)}
+              demoTime={isLiveDemoRunning ? demoTime : undefined}
             />
           )}
 
@@ -256,6 +268,7 @@ export default function App() {
               onTriggerRiskIdentify={handleTriggerRiskIdentify}
               onNavigateToRevision={() => setActiveTab('revision')}
               onNavigateToVersion={() => setActiveTab('version')}
+              demoTime={isLiveDemoRunning ? demoTime : undefined}
             />
           )}
 
@@ -268,6 +281,7 @@ export default function App() {
                 setActiveTab('drafting');
               }}
               onNavigateToRevision={() => setActiveTab('revision')}
+              demoTime={isLiveDemoRunning ? demoTime : undefined}
             />
           )}
 
@@ -276,6 +290,7 @@ export default function App() {
               currentDocument={currentDocument}
               onSaveDocument={handleSaveDocument}
               onNavigateToVersion={() => setActiveTab('version')}
+              demoTime={isLiveDemoRunning ? demoTime : undefined}
             />
           )}
 
@@ -289,6 +304,7 @@ export default function App() {
               }}
               onRestoreVersion={handleRestoreVersion}
               onLockFinalVersion={handleLockFinalVersion}
+              demoTime={isLiveDemoRunning ? demoTime : undefined}
             />
           )}
 
@@ -336,6 +352,19 @@ export default function App() {
           setCurrentDocId(doc.id);
           setActiveTab('drafting');
         }}
+      />
+
+      <SystemDemoVideoModal
+        isOpen={showSystemDemoVideo}
+        onClose={() => setShowSystemDemoVideo(false)}
+        onNavigateTab={(tab) => setActiveTab(tab)}
+      />
+
+      <LiveOperationDemo
+        isRunning={isLiveDemoRunning}
+        onStop={() => setIsLiveDemoRunning(false)}
+        onNavigateTab={(tab) => setActiveTab(tab)}
+        onDemoTimeUpdate={(time) => setDemoTime(time)}
       />
 
     </div>

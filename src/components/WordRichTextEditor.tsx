@@ -7,6 +7,7 @@ import {
   Heading1, Heading2, Heading3, AlignVerticalSpaceAround, FileCode, Check
 } from 'lucide-react';
 import { FormFields } from '../types';
+import { formatContractContentToHtml } from '../utils/contractFormatter';
 
 interface WordRichTextEditorProps {
   value: string;
@@ -46,12 +47,9 @@ export const WordRichTextEditor: React.FC<WordRichTextEditorProps> = ({
   useEffect(() => {
     if (editorRef.current) {
       if (!editorRef.current.innerHTML || editorRef.current.innerHTML === '<br>') {
-        // Format initial plain text content into clean paragraphs if plain text
+        // Format initial plain text content into clean contract clause paragraphs if plain text
         if (!value.includes('<p>') && !value.includes('<div>')) {
-          const htmlContent = value
-            .split('\n')
-            .map(line => line.trim() ? `<p style="margin-bottom: 0.75rem; text-indent: 2em; line-height: ${lineSpacing};">${line}</p>` : '<p><br></p>')
-            .join('');
+          const htmlContent = formatContractContentToHtml(value);
           editorRef.current.innerHTML = htmlContent || '<p>请在此输入文书内容...</p>';
         } else {
           editorRef.current.innerHTML = value;
@@ -582,7 +580,7 @@ export const WordRichTextEditor: React.FC<WordRichTextEditorProps> = ({
         </div>
       )}
 
-      {/* ==================== 3. EDITABLE A4 PAPER CANVAS ==================== */}
+      {/* ==================== 3. EDITABLE A4 PAPER ==================== */}
       <div className="flex-1 overflow-y-auto p-6 sm:p-10 flex justify-center bg-slate-200/80">
         
         {/* A4 Document Container */}
@@ -607,7 +605,7 @@ export const WordRichTextEditor: React.FC<WordRichTextEditorProps> = ({
             <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-medium">机密级别：内部资料</span>
           </div>
 
-          {/* CONTENT EDITABLE CANVAS */}
+          {/* CONTENT EDITABLE PAPER */}
           <div
             ref={editorRef}
             contentEditable

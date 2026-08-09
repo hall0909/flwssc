@@ -13,10 +13,10 @@ export const DOCUMENT_CATEGORIES: DocumentTypeConfig[] = [
     label: '电力工程合同',
     iconName: 'Zap',
     subTypes: [
-      { key: 'epc', label: 'EPC总承包合同', description: '电网基建/输变电新建项目工程总承包', requiredFields: ['partyA', 'partyB', 'amount', 'startDate', 'endDate', 'safetyResponsibility'] },
-      { key: 'construction', label: '基建施工合同', description: '变电站、线路施工与现场安装工程', requiredFields: ['partyA', 'partyB', 'amount', 'startDate', 'endDate', 'location'] },
-      { key: 'maintenance', label: '检修运维合同', description: '电网设备定期检修、巡检与抢修服务', requiredFields: ['partyA', 'partyB', 'amount', 'maintenanceScope'] },
-      { key: 'supervision', label: '监理服务合同', description: '工程建设全过程监理及质量安全监督', requiredFields: ['partyA', 'partyB', 'amount', 'startDate', 'endDate'] }
+      { key: 'epc', label: '基建EPC总承包合同', description: '变电站与输电线路新建工程总承包全流程', requiredFields: ['partyA', 'partyB', 'amount', 'startDate', 'endDate', 'safetyResponsibility'] },
+      { key: 'renovation', label: '技改工程改造合同', description: '老旧变电站、配电网技术改造与升级工程', requiredFields: ['partyA', 'partyB', 'amount', 'startDate', 'endDate', 'location'] },
+      { key: 'maintenance', label: '检修抢修工程合同', description: '电网设备定期检修、故障抢修与隐患治理', requiredFields: ['partyA', 'partyB', 'amount', 'maintenanceScope'] },
+      { key: 'operation', label: '运维巡检工程合同', description: '输变电设备运维代维、巡检与站房托管服务', requiredFields: ['partyA', 'partyB', 'amount', 'startDate', 'endDate'] }
     ]
   },
   {
@@ -24,9 +24,10 @@ export const DOCUMENT_CATEGORIES: DocumentTypeConfig[] = [
     label: '采购合同',
     iconName: 'ShoppingBag',
     subTypes: [
-      { key: 'equipment', label: '物资设备采购合同', description: '变压器、开关柜、线缆等电力物资采购', requiredFields: ['partyA', 'partyB', 'amount', 'deliveryMethod', 'qualityPeriod'] },
-      { key: 'framework', label: '服务框架协议', description: '年度信息技术、咨询或维保服务框架协议', requiredFields: ['partyA', 'partyB', 'amount', 'startDate', 'endDate'] },
-      { key: 'spot_order', label: '零星采购订单', description: '紧急缺口物资或短期临时服务采购', requiredFields: ['partyA', 'partyB', 'amount', 'location'] }
+      { key: 'framework', label: '框架采购协议', description: '年度智能电表、开关柜集中采购框架协议', requiredFields: ['partyA', 'partyB', 'amount', 'startDate', 'endDate'] },
+      { key: 'single_purchase', label: '单次采购合同', description: '专项主变压器、高压缆线等单批次采购', requiredFields: ['partyA', 'partyB', 'amount', 'deliveryMethod', 'qualityPeriod'] },
+      { key: 'equipment', label: '物资采购合同', description: '电力工程建设与运维标准化物资设备采购', requiredFields: ['partyA', 'partyB', 'amount', 'deliveryMethod'] },
+      { key: 'service', label: '服务采购合同', description: '信息系统维保、工程咨询与审计服务采购', requiredFields: ['partyA', 'partyB', 'amount', 'startDate', 'endDate'] }
     ]
   },
   {
@@ -34,10 +35,11 @@ export const DOCUMENT_CATEGORIES: DocumentTypeConfig[] = [
     label: '法务函件',
     iconName: 'FileText',
     subTypes: [
-      { key: 'reminder', label: '催告函', description: '工期延误催告、欠款催收或违约限期整改通知', requiredFields: ['partyA', 'partyB', 'projectTarget', 'breachTerms'] },
-      { key: 'termination', label: '解除通知', description: '严重违约合同解除及善后处理法定通知', requiredFields: ['partyA', 'partyB', 'projectTarget', 'breachTerms'] },
-      { key: 'dissent', label: '异议函', description: '对施工索赔、结算审计或验收结果的澄清异议', requiredFields: ['partyA', 'partyB', 'projectTarget'] },
-      { key: 'notice', label: '法律告知函', description: '对外法律沟通、合规事项提示与权利主张函', requiredFields: ['partyA', 'partyB', 'projectTarget'] }
+      { key: 'reminder', label: '催告函', description: '工期严重延误催告、欠款催收或限期整改', requiredFields: ['partyA', 'partyB', 'projectTarget', 'breachTerms'] },
+      { key: 'notice', label: '告知函', description: '合规要求告知、权利主张与事实法律提醒', requiredFields: ['partyA', 'partyB', 'projectTarget'] },
+      { key: 'warning', label: '警示函', description: '安全生产严重违章警告与违约违规惩戒', requiredFields: ['partyA', 'partyB', 'projectTarget'] },
+      { key: 'contact', label: '联络函', description: '跨单位业务衔接、文档移交与事项确认', requiredFields: ['partyA', 'partyB', 'projectTarget'] },
+      { key: 'reply', label: '答复函', description: '对施工索赔、结算审计异议的官方合规复函', requiredFields: ['partyA', 'partyB', 'projectTarget'] }
     ]
   },
   {
@@ -45,7 +47,7 @@ export const DOCUMENT_CATEGORIES: DocumentTypeConfig[] = [
     label: '制度文件',
     iconName: 'BookOpen',
     subTypes: [
-      { key: 'compliance_method', label: '合规管理办法', description: '企业内部专项合规治理与审查管理流程', requiredFields: ['partyA', 'projectTarget'] },
+      { key: 'compliance_method', label: '合规管理办法', description: '企业内部专项合规治理与文书审查管理流程', requiredFields: ['partyA', 'projectTarget'] },
       { key: 'legal_control', label: '法务内控细则', description: '合同签署审批、法律风险防控与授权管理', requiredFields: ['partyA', 'projectTarget'] },
       { key: 'safety_rule', label: '工程安全管理制度', description: '电网施工现场安全红线与违章处罚办法', requiredFields: ['partyA', 'safetyResponsibility'] }
     ]
@@ -55,9 +57,8 @@ export const DOCUMENT_CATEGORIES: DocumentTypeConfig[] = [
     label: '合规报告',
     iconName: 'ShieldCheck',
     subTypes: [
-      { key: 'annual_report', label: '年度合规报告', description: '单位年度法务风控与重大合规事项总结', requiredFields: ['partyA', 'startDate', 'endDate'] },
-      { key: 'project_self_check', label: '工程专项自查报告', description: '重点基建项目建设合规与劳务用工自查', requiredFields: ['partyA', 'projectTarget'] },
-      { key: 'procurement_eval', label: '采购合规评估报告', description: '招标采购全流程廉洁与合规性审查评估', requiredFields: ['partyA', 'amount'] }
+      { key: 'special_report', label: '专项合规报告', description: '重点基建工程自查、招投标采购合规评估', requiredFields: ['partyA', 'projectTarget'] },
+      { key: 'annual_report', label: '年度合规报告', description: '单位年度法务风控、制度执行与合规总结', requiredFields: ['partyA', 'startDate', 'endDate'] }
     ]
   }
 ];

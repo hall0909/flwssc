@@ -9,7 +9,9 @@ import {
   ChevronDown, 
   Building2, 
   Lock,
-  Cpu
+  Cpu,
+  Video,
+  Play
 } from 'lucide-react';
 import { UserRole } from '../types';
 
@@ -22,6 +24,8 @@ interface HeaderProps {
   onToggleAi: () => void;
   onOpenGlobalSearch: () => void;
   onOpenAIDisclaimer: () => void;
+  onOpenSystemDemoVideo?: () => void;
+  onStartLiveDemo?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -32,7 +36,9 @@ export const Header: React.FC<HeaderProps> = ({
   aiEnabled,
   onToggleAi,
   onOpenGlobalSearch,
-  onOpenAIDisclaimer
+  onOpenAIDisclaimer,
+  onOpenSystemDemoVideo,
+  onStartLiveDemo
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRoleMenu, setShowRoleMenu] = useState(false);
@@ -73,16 +79,28 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Center Search & AI Indicator */}
-        <div className="hidden md:flex items-center space-x-4">
+        {/* Center Search & AI Indicator & Operation Demo */}
+        <div className="hidden md:flex items-center space-x-3">
           <button 
             onClick={onOpenGlobalSearch}
-            className="flex items-center space-x-2 bg-slate-100 hover:bg-slate-200/80 text-slate-600 text-xs px-3.5 py-1.5 rounded-lg border border-slate-200 transition w-64 shadow-inner"
+            className="flex items-center space-x-2 bg-slate-100 hover:bg-slate-200/80 text-slate-600 text-xs px-3.5 py-1.5 rounded-lg border border-slate-200 transition w-56 shadow-inner"
           >
             <Search className="w-3.5 h-3.5 text-slate-400" />
-            <span className="truncate">检索全库范本、法规、条款...</span>
+            <span className="truncate">检索全库范本、法规...</span>
             <kbd className="ml-auto bg-white text-slate-500 text-[10px] px-1.5 py-0.5 rounded border border-slate-200">Ctrl+K</kbd>
           </button>
+
+          {/* Operation Demo Button */}
+          {onStartLiveDemo && (
+            <button
+              onClick={onStartLiveDemo}
+              className="flex items-center space-x-1.5 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 hover:from-indigo-500 hover:to-purple-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm hover:shadow transition transform active:scale-95 border border-indigo-400/30"
+              title="开启3分钟核心功能AI语音联动演示"
+            >
+              <Play className="w-3.5 h-3.5 text-amber-300 fill-amber-300 animate-pulse" />
+              <span>操作演示</span>
+            </button>
+          )}
 
           {/* AI Status Badge */}
           <div className="flex items-center space-x-2 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200 text-xs">

@@ -33,6 +33,7 @@ import {
   RiskItem,
   RevisionSuggestion
 } from '../types';
+import { formatContractContentToHtml } from '../utils/contractFormatter';
 import { DOCUMENT_CATEGORIES } from '../data/mockData';
 
 interface DocumentDraftingViewProps {
@@ -49,6 +50,7 @@ interface DocumentDraftingViewProps {
   onTriggerRiskIdentify: (doc: LegalDocument) => void;
   onNavigateToRevision: () => void;
   onNavigateToVersion: () => void;
+  demoTime?: number;
 }
 
 export const DocumentDraftingView: React.FC<DocumentDraftingViewProps> = ({
@@ -64,8 +66,12 @@ export const DocumentDraftingView: React.FC<DocumentDraftingViewProps> = ({
   onTriggerComplianceCheck,
   onTriggerRiskIdentify,
   onNavigateToRevision,
-  onNavigateToVersion
+  onNavigateToVersion,
+  demoTime
 }) => {
+  // Guide Modal state
+  const [showGuideModal, setShowGuideModal] = useState<boolean>(false);
+
   // Page mode state inside Drafting module: 'selector' | 'form_fill' | 'editor' | 'draft_list'
   const [pageMode, setPageMode] = useState<'selector' | 'form_fill' | 'editor' | 'draft_list'>(
     currentDocument ? 'editor' : 'selector'
@@ -100,16 +106,63 @@ export const DocumentDraftingView: React.FC<DocumentDraftingViewProps> = ({
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Editor states
-  const [editorContent, setEditorContent] = useState<string>(currentDocument?.content || '');
+  const [editorContent, setEditorContent] = useState<string>(
+    formatContractContentToHtml(currentDocument?.content || '')
+  );
   const [activeRightTab, setActiveRightTab] = useState<'fields' | 'kb' | 'compliance' | 'risk' | 'suggestions'>('fields');
   const [kbSearch, setKbSearch] = useState<string>('');
   const [aiPromptInput, setAiPromptInput] = useState<string>('');
   const [isGeneratingAi, setIsGeneratingAi] = useState<boolean>(false);
+  const [demoInsertedKb, setDemoInsertedKb] = useState<boolean>(false);
+
+  // Sync with Demo Timeline
+  React.useEffect(() => {
+    if (demoTime !== undefined) {
+      if (demoTime >= 25 && demoTime < 32) {
+        setPageMode('selector');
+        setSelectedCategory('power_engineering');
+        setSelectedSubType('epc');
+        setDemoInsertedKb(false);
+      } else if (demoTime >= 32 && demoTime < 41) {
+        setPageMode('form_fill');
+        setFormFields({
+          partyA: '国网江苏省电力有限公司',
+          partyB: '华东电力建设工程总公司',
+          creditCodeA: '91320000134769018A',
+          creditCodeB: '91310000100028912C',
+          projectTarget: '110kV输变电新建工程EPC总承包合同',
+          amount: 3200,
+          taxRate: 9,
+          startDate: '2026-09-01',
+          endDate: '2027-08-31',
+          location: '发包方指定南京现场',
+          qualityPeriod: '24个月',
+          paymentNodes: '预付款20%，按进度款付至75%，竣工验收付至90%，留扣5%质量保证金',
+          breachTerms: '工期延误每日按合同价0.05%支付违约金',
+          disputeResolution: '向南京仲裁委员会申请仲裁',
+          safetyResponsibility: '承包人全面承担施工现场安全主体责任，贯彻电网反违章规则'
+        });
+      } else if (demoTime >= 41 && demoTime < 51) {
+        setPageMode('editor');
+      } else if (demoTime >= 51 && demoTime < 76) {
+        setPageMode('editor');
+        setActiveRightTab('kb');
+        setKbSearch('反违章');
+        if (!demoInsertedKb) {
+          const aiBlock = `<p style="margin: 12px 0; padding: 10px 14px; background-color: #f0fdf4; border-left: 4px solid #16a34a; border-radius: 4px; color: #14532d;"><strong>【AI 自动插入电网示范条款】</strong> 乙方必须严格贯彻国家电网《安全生产反违章管理办法》，对施工现场负全面安全生产责任，严格执行配电作业双票制度。</p>`;
+          setEditorContent(prev => prev.includes('反违章管理办法') ? prev : prev + aiBlock);
+          setDemoInsertedKb(true);
+        }
+      } else if (demoTime >= 76 && demoTime < 102) {
+        setPageMode('editor');
+      }
+    }
+  }, [demoTime, demoInsertedKb]);
 
   // Sync state if currentDocument changes externally
   React.useEffect(() => {
     if (currentDocument) {
-      setEditorContent(currentDocument.content);
+      setEditorContent(formatContractContentToHtml(currentDocument.content));
       setFormFields(currentDocument.formFields);
     }
   }, [currentDocument]);
@@ -216,10 +269,20 @@ export const DocumentDraftingView: React.FC<DocumentDraftingViewProps> = ({
           )}
         </div>
 
-        {/* Global AI Disclaimer Note */}
-        <div className="hidden lg:flex items-center space-x-2 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full font-medium">
-          <Info className="w-3.5 h-3.5 text-amber-600" />
-          <span>所有 AI 自动生成的文书段落均标有浅蓝底色，需法务人员人工审核确认</span>
+        {/* Global AI Disclaimer Note & Guide Button */}
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setShowGuideModal(true)}
+            className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-full border border-indigo-200 flex items-center space-x-1 font-semibold shadow-xs transition"
+          >
+            <HelpCircle className="w-3.5 h-3.5 text-indigo-600" />
+            <span>智能编写操作指南</span>
+          </button>
+
+          <div className="hidden lg:flex items-center space-x-2 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full font-medium">
+            <Info className="w-3.5 h-3.5 text-amber-600" />
+            <span>所有 AI 自动生成的文书段落均标有浅蓝底色，需法务人员人工审核确认</span>
+          </div>
         </div>
       </div>
 
@@ -636,7 +699,9 @@ export const DocumentDraftingView: React.FC<DocumentDraftingViewProps> = ({
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => currentDocument && onTriggerComplianceCheck(currentDocument)}
-                  className="bg-slate-50 hover:bg-slate-100 text-indigo-700 text-xs px-2.5 py-1 rounded border border-indigo-200 flex items-center space-x-1 font-medium"
+                  className={`bg-slate-50 hover:bg-slate-100 text-indigo-700 text-xs px-2.5 py-1 rounded border border-indigo-200 flex items-center space-x-1 font-medium transition ${
+                    demoTime !== undefined && demoTime >= 76 && demoTime < 102 ? 'ring-2 ring-indigo-500 bg-indigo-50 animate-pulse scale-105' : ''
+                  }`}
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
                   <span>合规一键校验</span>
@@ -644,7 +709,9 @@ export const DocumentDraftingView: React.FC<DocumentDraftingViewProps> = ({
 
                 <button
                   onClick={() => currentDocument && onTriggerRiskIdentify(currentDocument)}
-                  className="bg-slate-50 hover:bg-slate-100 text-amber-800 text-xs px-2.5 py-1 rounded border border-amber-200 flex items-center space-x-1 font-medium"
+                  className={`bg-slate-50 hover:bg-slate-100 text-amber-800 text-xs px-2.5 py-1 rounded border border-amber-200 flex items-center space-x-1 font-medium transition ${
+                    demoTime !== undefined && demoTime >= 76 && demoTime < 102 ? 'ring-2 ring-amber-500 bg-amber-50 animate-pulse scale-105' : ''
+                  }`}
                 >
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
                   <span>风险一键识别</span>
@@ -663,7 +730,7 @@ export const DocumentDraftingView: React.FC<DocumentDraftingViewProps> = ({
                   className="bg-slate-50 hover:bg-slate-100 text-teal-700 text-xs px-2.5 py-1 rounded border border-teal-200 flex items-center space-x-1 font-medium"
                 >
                   <Archive className="w-3.5 h-3.5 text-teal-600" />
-                  <span>版本快照管理</span>
+                  <span>版本快照对照</span>
                 </button>
               </div>
             </div>
@@ -893,6 +960,93 @@ export const DocumentDraftingView: React.FC<DocumentDraftingViewProps> = ({
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== 智能编写简易操作指南弹窗 ==================== */}
+      {showGuideModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 relative animate-in fade-in zoom-in duration-150">
+            <button
+              onClick={() => setShowGuideModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full transition"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center space-x-2.5 mb-4 border-b border-slate-100 pb-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                <Sparkles className="w-5 h-5 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">文书智能编写 · 简易操作流程指南</h3>
+                <p className="text-xs text-slate-500">国家电网标准法律文书一站式智能起草、校验与管理解析</p>
+              </div>
+            </div>
+
+            <div className="space-y-3.5 my-4 text-xs text-slate-700 leading-relaxed max-h-[460px] overflow-y-auto pr-1">
+              
+              <div className="flex items-start space-x-3 bg-indigo-50/60 p-3 rounded-xl border border-indigo-100">
+                <div className="bg-indigo-600 text-white rounded-lg w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs mt-0.5">1</div>
+                <div>
+                  <h4 className="font-bold text-indigo-900 text-sm">选择文书类型与模板模式</h4>
+                  <p className="text-slate-600 mt-0.5">
+                    在<b>【新建选择】</b>页，选择<b>电力工程合同、采购合同、法务函件、制度文件、合规报告</b>五大类别。选择【表单引导生成】、【空白范本】或【AI一键撰写】。
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div className="bg-slate-700 text-white rounded-lg w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs mt-0.5">2</div>
+                <div>
+                  <h4 className="font-bold text-slate-900 text-sm">填写结构化关键字段</h4>
+                  <p className="text-slate-600 mt-0.5">
+                    在<b>【表单填报】</b>界面，录入发承包双方名称、统一社会信用代码、工程标的、金额税率、质保期等。系统自动按国网规范生成带合规格式的完整范本。
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 bg-sky-50/70 p-3 rounded-xl border border-sky-100">
+                <div className="bg-sky-600 text-white rounded-lg w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs mt-0.5">3</div>
+                <div>
+                  <h4 className="font-bold text-sky-900 text-sm">Word 仿真编辑与 AI 条款生成</h4>
+                  <p className="text-slate-600 mt-0.5">
+                    在<b>【在线编辑主页】</b>使用全功能 Word 格式栏。可输入自然语言指令（如：“添加输变电抢修应急响应条款”），AI 自动生成<b>浅蓝高亮标记</b>的智能片段供复核。
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 bg-amber-50/70 p-3 rounded-xl border border-amber-100">
+                <div className="bg-amber-600 text-white rounded-lg w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs mt-0.5">4</div>
+                <div>
+                  <h4 className="font-bold text-amber-900 text-sm">一键合规校验与风险识别</h4>
+                  <p className="text-slate-600 mt-0.5">
+                    点击顶部<b>【合规一键校验】</b>或<b>【风险一键识别】</b>，AI 深度比对电网库与法律法规，自动定位质保金超留、履约违约缺陷等隐患并给出修改建议。
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 bg-emerald-50/70 p-3 rounded-xl border border-emerald-100">
+                <div className="bg-emerald-600 text-white rounded-lg w-6 h-6 flex items-center justify-center shrink-0 font-bold text-xs mt-0.5">5</div>
+                <div>
+                  <h4 className="font-bold text-emerald-900 text-sm">智能修订、版本快照与带水防伪导出</h4>
+                  <p className="text-slate-600 mt-0.5">
+                    在<b>【智能修订工作台】</b>接受/拒绝建议，在<b>【版本快照】</b>比对历史修订单。审查无误后一键导出带有电网防伪水印的 Word / PDF 文档。
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => setShowGuideModal(false)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-5 py-2 rounded-xl transition shadow-sm"
+              >
+                我知道了，开始编写
+              </button>
+            </div>
           </div>
         </div>
       )}
